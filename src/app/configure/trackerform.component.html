@@ -1,0 +1,374 @@
+<div class="row">
+  <div class="col-lg-2">
+    <!-- empty space -->
+  </div>
+  <div class="row col-lg-8" *ngIf="programActivated">
+    <div class="col-lg-12">
+      <h1>
+        {{ orgUnitAncestors[0]?.name }}
+      </h1>
+      <h4>
+        {{ warehouse?.name }} ( {{ zone?.value }} )
+      </h4>
+      <h4>
+        {{ orgUnit?.name}},&nbsp;&nbsp;{{ orgUnitAncestors[2]?.name }}
+      </h4>
+    </div>
+  </div>
+  <div class="col-lg-2">
+  </div>
+</div>
+<div class="row">
+  <form [formGroup]="entityAttributeForm" novalidate *ngIf="programActivated">
+  <div class="row col-lg-12">
+    <div class="col-lg-1">
+    </div>
+    <div class="col-lg-2 identifier">
+        <label>Order Number:&nbsp;&nbsp;&nbsp;
+        <input  class="form-control" [name]= "programUniqueIdentifier.id" [id]= "programUniqueIdentifier.id" [formControlName]="programUniqueIdentifier.id" readonly="true">
+        </label>
+    </div>
+    <div class="col-lg-3">
+      <label>Type of Order:
+      <select required class="form-control" (change)="getWarehouse()" [formControlName]="programOrderTypeAttr.id" placeholder="Select Order Type">
+        <option *ngFor="let ordertype of orderTypes" [ngValue]="ordertype">{{ ordertype?.name }}</option>
+      </select>
+      </label>
+    </div>
+    <div class="col-lg-3">
+      <label> Warehouse/Store:
+        <select required class="form-control" (change)="getZone()" [formControlName]="programWarehouseAttr.id" placeholder="Select Warehouse" readonly="true">
+          <option *ngFor="let warehouse of warehouses" [ngValue]="warehouse">{{ warehouse?.name }}</option>
+        </select>
+      </label>
+    </div>
+    <div class="col-lg-3">
+      <label>Delivery Zone:
+      <select  readonly="true" required="true" class="form-control" [formControlName]="programDeliveryZoneAttr.id" placeholder="Select Delivery Zone">
+          <option *ngFor="let zone of zones" [ngValue]="zone">{{ zone?.name }}</option>
+      </select>
+      </label>
+    </div>
+  </div>
+  <div class="row col-lg-12">
+    <div class="col-lg-1">
+    </div>
+    <div class="col-lg-2">
+      <label *ngIf="cyclesEnabled == true"> Cycle:
+        <select required class="form-control" [formControlName]="programCycleIdentifier.id" (change)="getCycle(entityAttributeForm.value[programCycleIdentifier.id])" placeholder="Select Cycle">
+          <option *ngFor="let cycle of cycles" [ngValue]="cycle">{{ cycle?.name }}</option>
+        </select>
+      </label>
+    </div>
+    <div class="col-lg-3">
+      <label> Order Category (Emergency/Regular):
+
+      </label>
+    </div>
+    <div class="col-lg-3">
+      <label> Order Date:
+        <input  class="form-control" placeholder="yyyy-mm-dd" name="incidentDate" formControlName="incidentDate" ngbDatepicker #incidentDate="ngbDatepicker"/>
+      <div class="input-group-append">
+        <i (click)="incidentDate.toggle()"  class="fa fa-calendar"></i>
+      </div>
+      </label>
+    </div>
+    <div class="col-lg-3">
+      <label> Deadline Date:
+          <input readonly placeholder="yyyy-mm-dd" type="date" name="dueDate" formControlName="dueDate" class="form-control"/>
+      </label>
+    </div>
+  </div>
+  </form>
+</div>
+<div class="row" *ngIf="programActivated">
+  <div class="col-lg-12">
+    <hr>
+  </div>
+  <!-- End of entityAttributeForm -->
+</div>
+<div class="row align-items-start" *ngIf="!programActivated && !hideMenu">
+  <div class="col-lg-2"></div>
+  <div class="col-lg-4">     
+    <!--<div (click)="displayOrgTree()">
+      <span *ngIf="selectedOrgUnits.length == 0 && !orgunitTreeConfig.loading">{{ orgunitTreeConfig.placeholder }}</span>
+      <span *ngIf="!orgunitTreeConfig.loading"></span>
+    </div> -->
+    <div class="row">
+      <div class="col-lg-12">
+      <label>Organisation Units</label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-12">
+        <form *ngIf="!orgunitTreeConfig.loading && orgunitTreeConfig.showSearch">
+          <input  class="form-control" #filter (keyup)="filterNodes(filter.value, orgtree)" placeholder="{{ orgunitTreeConfig.searchText }}">
+        </form>
+      </div>
+    </div>
+    <div class="row ">
+      <div class="col-lg-12" *ngIf="orgunitTreeConfig.loading">
+        <span >{{ orgunitTreeConfig.loadingMessage }}
+        </span>
+      </div>
+      <div class="col-lg-12 tree" *ngIf="!orgunitTreeConfig.loading">
+        <tree-root
+          #orgtree
+          [nodes]="organisationunits"
+          [focused]="true"
+          [options]="treeOptions"
+          (activate)="activateOrg($event)"
+          (deactivate)="deactivateOrg($event)"
+        >
+          <ng-template #treeNodeTemplate let-node>
+            <span>{{ node.data.name }} </span>
+          </ng-template>
+        </tree-root>
+      </div>
+    </div>       
+  </div>
+  <div class="col-lg-1">
+  </div>
+  <div class="col-lg-4" *ngIf="!programActivated && !hideMenu">
+    <div class="row">
+      <div class="col-lg-12">
+        <label>Programs</label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-12">
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-12" *ngIf="!programAssigned">
+        <span>{{ noProgramDataMessage }}</span>
+      </div>
+      <div class="col-lg-12 tree" *ngIf="programAssigned">
+        <tree-root
+          #programTree
+          [nodes]="programsTree"
+          [focused]="true"
+          [options]="treeOptions"
+          (activate)="activateProgram($event)"
+
+        >
+          <ng-template #treeNodeTemplate let-node>
+            <span>{{ node.data.name }} </span>
+          </ng-template>
+        </tree-root>
+      </div>
+    </div>
+
+  </div>
+  <div class="col-lg-1">
+  </div>
+</div>
+<div *ngIf="programActivated && hideMenu" class="showmenu">
+  <div class="col-lg-12">
+     <button button type="button" (click)="activateMenu()">Show Menu</button>
+  </div> 
+</div>
+<div class="row align-items-start" *ngIf="stageFormOpen">
+  <div class="col-lg-12">
+    <form class="form-group" [formGroup]="orderForm" *ngIf="items.length > 0">
+      <div class="row ">
+        <div class="col-lg-10 form-inline form-inline-elmis">
+          <ng-template ngFor let-label [ngForOf]="items">        
+              <span class="col col-elmis-header">{{ label.formName }}</span>        
+          </ng-template>
+        </div>
+        <div class="col">
+        </div>
+        <div class="col">
+        </div>
+      </div>
+      <div class="row" formArrayName="products" *ngFor="let i of orderForm.get('products').controls; let m=index;">
+        <div class="col-lg-10 form-inline form-inline-elmis" [formGroupName]="m">
+          <ng-template ngFor let-item [ngForOf]="items">
+            <div class="col">
+              <div class="col-elmis-input" *ngIf="item.type == 'SELECT' && orderIds.orderTypeDataElementId.id == item.id"> 
+                  <ng-select 
+                    placeholder="{{ item.name }}" 
+                    name="id" 
+                    formControlName="{{ item.id }}"
+                    [items] ="item.options"
+                    [multiple] = "false"
+                    [virtualScroll] ="true"
+                    (change)="onChange($event,m)"
+                    clearAllText ="Clear"
+                    bindLabel="name">
+                  </ng-select>
+              </div> 
+              <div class="col-elmis-input" *ngIf="item.type == 'SELECT' && orderIds.productTypeDataElementId.id ==item.id"> 
+                  <ng-select 
+                    placeholder="{{ item.name }}" 
+                    name="id" 
+                    formControlName="{{ item.id }}"
+                    [items] ="orderProducts"
+                    [multiple] = "false"
+                    [virtualScroll] ="true"
+                    (change)="onChange($event,m)"
+                    clearAllText ="Clear"
+                    bindLabel="name">
+                  </ng-select>
+              </div>  
+              <div class="col-elmis-input" *ngIf="item.type == 'SELECT' && orderIds.basicUnitId.id == item.id"> 
+                  <ng-select 
+                    placeholder="{{ item.name }}" 
+                    name="id" 
+                    formControlName="{{ item.id }}"
+                    [items] ="orderPackage"
+                    [multiple] = "false"
+                    [virtualScroll] ="true"
+                    (change)="onChange($event,m)"
+                    clearAllText ="Clear"
+                    bindLabel="name">
+                  </ng-select>
+              </div>             
+              <div class="col-elmis-input" *ngIf="item.type == 'INPUT'">
+                <input class="form-control" [readonly]="trackedEntitySubmitted" (change)="onChange($event,m)" type="text" id="{{item.id}}" placeholder="{{item.formName}}" [formControlName]="item.id" [value]="item.value"/>
+              </div>
+              <div class="col-elmis-input" *ngIf="item.type == 'DATEPICKER'">
+                <input class="form-control" (change)="onChange($event,m)" type="date" id="{{item.id}}" placeholder="{{item.formName}}" [formControlName]="item.id"/>
+              </div>
+              <div class="col-elmis-input" *ngIf="item.type == 'TIMEPICKER'">
+                <input class="form-control" (change)="onChange($event,m)" type="time" id="{{item.id}}" placeholder="{{item.formName}}" [formControlName]="item.id"/>
+              </div>
+              <div class="col-elmis-input" *ngIf="item.type == 'TEXTAREA'">
+                <textarea rows="2" (change)="onChange($event,m)" class="form-control" id="{{item.id}}" placeholder="{{item.formName}}" [formControlName]="item.id"></textarea>
+              </div>
+            </div>
+          </ng-template>          
+        </div>
+        
+      </div>        
+    </form>
+  </div>
+</div>
+<div class="row align-items-start">
+  <div class="col-lg-2">    
+  </div>
+  <div class="col-lg-1">
+    <button button class="btn btn-secondary" (click)="addProductItem()">Add</button>
+  </div>      
+  <div class="col-lg-1">
+    <button  button class="btn btn-secondary" [disabled]="!orderForm.valid && !entityAttributeForm.valid" type="button" (click)="add($event);orderForm.reset()">Save</button>
+  </div>
+  <div class="col-lg-1">
+    <button button class="btn btn-secondary" type="button" (click)="cancelAdd()">Cancel</button>
+  </div>
+  <div class="col-lg-3">    
+  </div>
+  <div class="col-lg-1">
+    <button  class="btn btn-secondary" type="button" (click)="submitTrackerData()">Save Order</button>
+  </div>
+  <div class="col-lg-1">
+    <button button class="btn btn-secondary" id="printbutton" type="button" (click)="window.print()">Print Order</button>
+  </div>
+  <div class="col-lg-2">    
+  </div>
+</div>
+<div class="row">
+    <div class="col-lg-11">
+      <br>
+      <br>
+      <br>
+      <form class="dataSetForm" [formGroup]="dataSetForm" *ngIf="trackedEntitySubmitted" novalidate>
+        <div class="etable-div">
+          <select formControlName="selectedOrgUnitId" placeholder="Select OrgUnit">
+            <option [value]="orgUnit.id">{{ orgUnit.name}}</option>
+          </select>
+        </div>
+        <div class="etable-div">
+          <select (change)="getAttributeCombos()" formControlName="selectedDataSetId" placeholder="Select DataSet">
+            <option *ngFor="let ds of enabledDataSets" [value]="ds.id">{{ ds.name}}</option>
+          </select>
+        </div>
+        <div class="etable-div">
+          <select formControlName="selectedPeriodId" placeholder="Select Period">
+            <option [value]="periodId">{{ periodName }} </option>
+          </select>
+        </div>
+        <div *ngIf="(dataSetAttributesLength > 1) && dataSetAttributesAvailable">
+
+          <div *ngFor="let attribute of dataSetAttributes.categories" class="etable-div">
+            <select (change)="getAttributeOptionChange()" formControlName="{{ attribute.id }}">
+            <option *ngFor="let categoryOption of attribute.categoryOptions" [value]="categoryOption.id">
+              {{ categoryOption.name}}
+            </option>
+          </select>
+          </div>
+        </div>
+      </form>
+      <br>
+      <br>
+      <form class="entityDataEntryForm" [formGroup]="entityDataEntryForm" *ngIf="trackedEntitySubmitted && dataEntryFormLoaded && !formStayClosed"> 
+          <div formArrayName="dataElements">
+            <div *ngFor="let n of entityDataEntryForm.controls.dataElements.controls; let j = index">
+              <div [formGroupName]="j">
+                <div><h2>{{ dataSetElements[j].name }}</h2>
+                </div>
+                <table>
+                  <tr class="tdHeader">
+                    <td class="data-header-el-td">
+
+                    </td>
+                    <td *ngFor="let optionComboHeader of dataSetElements[j]?.dataElements[0]?.optionCombos" class="data-header-td">
+
+                      <table border="0px">
+                        <tr>
+                          <td [attr.colspan]="optionComboHeader.options.length" class="data-header-inner-td">
+                            {{optionComboHeader.name }}
+                          </td>
+                        </tr>
+                        <tr *ngIf="optionComboHeader.options.length > 1">
+                          <td *ngFor="let optionHeader of optionComboHeader.options" class="data-header-inner-td" >
+                            {{ optionHeader.title }}
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr [formGroupName]="dataElement.id" *ngFor="let dataElement of dataSetElements[j]?.dataElements;let s=index">
+                    <td class="data-header-el-td">
+                      <table>
+                        <tr>
+                          <td>
+                             {{ dataElement.formName }}
+                          </td>
+                        </tr>
+                        <tr *ngIf="(dataSetElements[j]?.dataElements.length == (s+1)) && dataSetElements[j].showColumnTotals">
+                          <td>
+                            Total
+                          </td>
+                        </tr>
+                      </table>
+
+                    </td>
+                    <td [formGroupName]="optionCombo.id" *ngFor="let optionCombo of dataElement.optionCombos; let y= index">
+                      <table>
+                        <tr>
+                          <td *ngFor="let option of optionCombo.options; let ty= index">
+                            <input [ngClass]="(option.disabled == true)?'data-value-td-total':'data-value-td'" [readonly]="option.disabled" id="{{ option.id }}" formControlName="{{ option.id}}" (change)="updateSectionColumnTotals(j,dataSetElements[j].showColumnTotals,optionCombo.id,option.id)" type="text"/>
+                          </td>
+                        </tr>
+                        <tr *ngIf="(dataSetElements[j]?.dataElements.length == (s+1)) && dataSetElements[j].showColumnTotals">
+                          <td  *ngFor="let optionx of optionCombo.options; let tyx= index">
+                            <input [readonly]="true" class="data-value-td-total" #col{{j}{{optionx.id}} name="col-{{j}}-{{ optionx.id }}" id="col-{{j}}-{{ optionx.id }}" type="text" value="0" />
+
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="buttonClass">
+            <button (click)="submitDataEntryForm()" type="button">Complete Order/Report</button>
+          </div>
+      </form>
+
+    </div>
+</div> 

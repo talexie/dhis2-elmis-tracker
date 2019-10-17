@@ -1,0 +1,59 @@
+<div>
+  	<div fxLayout="row" fxLayout-xs="column" fxLayout-md="column" fxLayoutAlign="start stretch" fxLayoutWrap>
+		<div fxFlex="20%">
+
+		</div>
+		<div fxFlex="20%" class="flextrim">
+			<span>Configure</span>
+		</div>
+	<div fxFlex class="flextrim">
+		<form class="text-center dynamic-program-form" [formGroup]="configureTypeFormGroup">
+			<dynamic-ng-bootstrap-form-control *ngFor="let configureTypeModel of configureTypeFormModel"
+      [group]="configureTypeFormGroup"
+      [model]="configureTypeModel"
+      [hasErrorMessaging]="configureTypeModel.hasErrorMessages"
+      (dfChange) = "getConfigureType($event)">
+
+			</dynamic-ng-bootstrap-form-control>
+		</form>
+	</div>
+	<div fxFlex="20%">
+
+	</div>
+</div>
+	<div fxLayout="row" fxLayout-xs="column" fxLayout-md="column" fxLayoutAlign="start stretch" fxLayoutWrap>
+		<div class="flextrim" fxFlex="30%" fxFlexOffset="5%" *ngIf="configureType == 'messaging'">
+		 	<form class="text-center dynamic-program-form" [formGroup]="messageFormGroup">
+				<dynamic-ng-bootstrap-form-control *ngFor="let messageModel of messageFormModel"
+        [group]="messageFormGroup"
+        [model]="messageModel"
+        [hasErrorMessaging]="messageModel.hasErrorMessages"
+        >
+
+				</dynamic-ng-bootstrap-form-control>
+			</form>
+		</div>
+		<div class="flextrim" fxFlex="30%" fxFlexOffset="5%" *ngIf="configureType == 'program'">
+			<form class="text-center dynamic-program-form" [formGroup]="programFormGroup">
+				<dynamic-ng-bootstrap-form-control *ngFor="let programModel of programFormModel"
+            [group]="programFormGroup"
+            [model]="programModel"
+            [hasErrorMessaging]="programModel.hasErrorMessages"
+            (dfChange)= "updateProgramForm($event)"
+            (dfFocus)= "updateProgramForm($event)">
+				</dynamic-ng-bootstrap-form-control>
+			</form>
+		</div>
+		<div class="flextrim" fxFlex fxFlexOffset="5%">
+			<span>Existing Templates </span>
+		</div>
+		<div  class="flextrim" fxFlex="5%">
+		<!-- Empty space -->
+		</div>
+	</div>
+		<div fxFlexOffset="30%">
+			<button type="button"> Save</button>
+
+		</div>
+
+	</div>
